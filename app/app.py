@@ -34,6 +34,11 @@ breed = st.selectbox(
     animal_breed_list
 )
 
+if breed.find('mix') == -1:
+    mix = 0
+else:
+    mix = 1
+
 intake_cond = st.selectbox(
     'What condition is the animal?',
     animal_condition_list
@@ -108,12 +113,6 @@ is_named_in = st.selectbox(
     named_in_map.keys()
 )
 
-mix_map = {'Yes':1.0,'No':2.0}
-mix = st.selectbox(
-    'Is the animal a mix?',
-    ['Yes','No']
-)
-
 sex = st.selectbox(
     'What is the sex of the animal?',
     ['Male','Female']
@@ -143,7 +142,7 @@ encoder = pickle.load(open('./model/input_encoder.pkl','rb'))
 numeric_input = np.array([prev_adopt,prev_transfer,prev_ret_to_owner,
                           prev_rto_adopt,prev_disposal,prev_missing,
                           age_upon_intake,named_in_map[is_named_in],
-                          mix_map[mix],days_in_shelter])
+                          mix,days_in_shelter])
 categorical_input = np.array([
     type, color, breed, intake_type, intake_cond,
     month_map[month], day, sex, is_neutered, age_type

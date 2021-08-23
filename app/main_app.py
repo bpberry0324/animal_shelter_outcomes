@@ -34,6 +34,11 @@ breed = st.selectbox(
     animal_breed_list
 )
 
+if breed.find('mix') == -1:
+    mix = 0
+else:
+    mix = 1
+
 intake_cond = st.selectbox(
     'What condition is the animal?',
     animal_condition_list
@@ -95,7 +100,7 @@ prev_missing = st.number_input(
 )
 
 age_upon_intake = st.number_input(
-    'What is the animal\'s age upon intake?'
+    'What is the animal\'s age upon intake (in years)?'
 )
 
 named_in_map = {
@@ -106,12 +111,6 @@ named_in_map = {
 is_named_in = st.selectbox(
     'Is the animal named upon intake?',
     named_in_map.keys()
-)
-
-mix_map = {'Yes':1.0,'No':2.0}
-mix = st.selectbox(
-    'Is the animal a mix?',
-    ['Yes','No']
 )
 
 sex = st.selectbox(
@@ -138,32 +137,44 @@ elif .5 < age_upon_intake <= 2:
 else:
     age_type = '< 6 Months '
 
+# sanitize user input
 encoder = pickle.load(open('./model/input_encoder.pkl','rb'))
-
 numeric_input = np.array([prev_adopt,prev_transfer,prev_ret_to_owner,
                           prev_rto_adopt,prev_disposal,prev_missing,
                           age_upon_intake,named_in_map[is_named_in],
-                          mix_map[mix],days_in_shelter])
-
+                          mix,days_in_shelter])
 categorical_input = np.array([
     type, color, breed, intake_type, intake_cond,
     month_map[month], day, sex, is_neutered, age_type
 ]).reshape(1,-1)[0]
-
 categorical_input = encoder.transform(categorical_input.reshape(1,-1))[0]
-
 user_input = np.hstack([numeric_input,categorical_input])
 
+# load the models
 stray_model = pickle.load(open('./model/stray_pipe.pkl','rb'))
 ownersurrender_model = pickle.load(open('./model/ownersurrender_pipe.pkl','rb'))
 passist_model = pickle.load(open('./model/pubassist_pipe.pkl','rb'))
 euth_model = pickle.load(open('./model/euth_pipe.pkl','rb'))
+wlife_model = pickle.load(open('./model/wlife_pipe.pkl','rb'))
+abandoned_model = pickle.load(open('./model/abandoned_pipe.pkl','rb'))
 
+# determine prediction
+pred = []
 if intake_type == 'Stray':
-    st.text(stray_model.predict(user_input.reshape(1,-1)))
+    pred = stray_model.predict(user_input.reshape(1,-1))
 elif intake_type == 'Owner Surrender':
-    st.text(ownersurrender_model.predict(user_input.reshape(1,-1)))
+    pred = ownersurrender_model.predict(user_input.reshape(1,-1))
 elif intake_type == 'Public Assist':
-    st.text(passist_model.predict(user_input.reshape(1,-1)))
+    pred = passist_model.predict(user_input.reshape(1,-1))
 elif intake_type == 'Euthanasia Request':
-    st.text(euth_model.predict(user_input.reshape(1,-1)))
+    pred = euth_model.predict(user_input.reshape(1,-1))
+elif intake_type == 'Wildlife':
+    pred = wlife_model.predict(user_input.reshape(1,-1))
+elif intake_type == 'Abandoned':
+    pred = abandoned_model.predict(user_input.reshape(1,-1))
+
+if st.button('Make Prediction'):
+    if pred == [1]:
+        st.write('We Predict an Adoption')
+    elif pred == [0]:
+        st.write('We do not predict an Adoption')

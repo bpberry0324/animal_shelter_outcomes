@@ -2,6 +2,9 @@
 
 This survey evaluates the potential to predict adoption outcomes for animals entering the Austin Animal Center shelter system and examines the implications of these findings.
 
+### Authors
+Brian Berry, Rachael Friedman, Katie Sylvia, Maryam Amjad, Evan Hoefling
+
 ### Table of Contents:
 
 - Part I: Summary of Findings
